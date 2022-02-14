@@ -1,0 +1,21 @@
+resource "yandex_iam_service_account" "k8s" {   
+  folder_id = var.yc_folder_id                       
+  name  = "k8s"                                                                           
+}                                                       
+                                                                                  
+resource "yandex_iam_service_account" "node" {                                                                    
+  folder_id = var.yc_folder_id                                                                          
+  name  = "node"                                                                           
+}                                                                                  
+                                                                                  
+// Grant permissions                                                                            
+resource "yandex_resourcemanager_folder_iam_member" "k8s-editor" {                                                              
+  folder_id = var.yc_folder_id                                                                          
+  role  = "editor"                                                                            
+  member  = "serviceAccount:${yandex_iam_service_account.k8s.id}"                                                             
+}          
+resource "yandex_resourcemanager_folder_iam_member" "k8s-node" {                                                              
+  folder_id = var.yc_folder_id                                                                          
+  role  = "container-registry.images.puller"                                                                            
+  member  = "serviceAccount:${yandex_iam_service_account.node.id}"                                                             
+}          
