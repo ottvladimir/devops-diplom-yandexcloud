@@ -523,7 +523,7 @@ OAUTH - oauth token для авторизации в yc
 Интерфейс ci/cd сервиса доступен по [ссылке](https://gitlab.com/ottvladimir/netology-diplom-nginx/-/settings/ci_cd)
 При любом коммите в репозиторие с тестовым приложением происходит сборка и отправка в регистр Docker образа.
 ![image](./images/build.png)
-![image](./images/deploy)
+![image](./images/deploy.png)
 ---
 ## Что необходимо для сдачи задания?
 
