@@ -1,4 +1,0 @@
-yc_token = "t1.9euelZrMl8-Oi4vPnoqLiZvLx46PzO3rnpWazomXi5LGnIuPkc-ZmZmdl53l8_cnd2xv-e9zT11z_t3z92clam_573NPXXP-zef1656VmsqclZqPmZmOno6azZSdjp6e7_0.BQw-0pMov_Q9X5Or8BHwKdJ-u6nZUebx4gnj78OjPNMLptlysHzihdX3-xruMWvJF6svf1MT4uAwoM64aMJtDQ"
-yc_cloud_id = "b1gn8u1u8g5h315su46a"
-yc_folder_id = "b1gbfdm5fn2htkj22u8h"
-sa_id="aje1vhtm9ctpn0fffbhb"

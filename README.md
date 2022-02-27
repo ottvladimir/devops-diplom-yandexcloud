@@ -25,12 +25,7 @@
 
 ### Создание облачной инфраструктуры
 
-Для начала необходимо подготовить облачную инфраструктуру в ЯО при помощи [Terraform](https://www.terraform.io/).
-
-Особенности выполнения:
-
-- Бюджет купона ограничен, что следует иметь в виду при проектировании инфраструктуры и использовании ресурсов;
-- Следует использовать последнюю стабильную версию [Terraform](https://www.terraform.io/).
+Подготавливаю облачную инфраструктуру в ЯО при помощи [Terraform](https://www.terraform.io/).
 
 Предварительная подготовка к установке и запуску Kubernetes кластера.
 
@@ -39,13 +34,14 @@
 yc iam service-account create terraform
 yc iam key create --service-account-name terraform -o terraform.json
 yc config set service-account-key terraform.json
-yc iam create-token
+export TF_VAR_yc_token=$(yc iam create-token)
 SERVICE_ACCOUNT_ID=$(yc iam service-account get --name terraform --format json | jq -r .id)
 FOLDER_ID=$(yc iam service-account get --name terraform --format json | jq -r .folder_id)
-yc resource-manager folder add-access-binding $FOLDER_ID --role editor --subject serviceAccount:$SERVICE_ACCOUNT_ID
+yc resource-manager folder add-access-binding $FOLDER_ID --role editor --subject 
+yc iam service-account add-access-binding $SERVICE_ACCOUNT_ID --role editor 
+serviceAccount:$SERVICE_ACCOUNT_ID
 ```
-2. Подготовьте [backend](https://www.terraform.io/docs/language/settings/backends/index.html) для Terraform:  
-   а. Рекомендуемый вариант: [Terraform Cloud](https://app.terraform.io/)  
+2. Подготавливаю backend на [Terraform Cloud](https://app.terraform.io/)  
 ```tf
 # backend.tf
 terraform {                                                                                                      
@@ -53,14 +49,15 @@ terraform {
     organization = "my_diploma"                                                                                  
     workspaces {                                                                                 
       prefix = "netology-diploma-"                                                                              
-    }                                                                                                            
-    token = "xxx.atlasv1.xxxxx"       
-  }                                                                                                                 
-}         
+    }                                                                                                                     
 ```
-   б. Альтернативный вариант: S3 bucket в созданном ЯО аккаунте
-3. Настройте [workspaces](https://www.terraform.io/docs/language/state/workspaces.html)  
-   а. Рекомендуемый вариант: создайте два workspace: *stage* и *prod*. В случае выбора этого варианта все последующие шаги должны учитывать факт существования нескольких workspace.  
+```bash
+$ cat ~/.terraformrc
+credentials "app.terraform.io" {
+token = "Place your token here"
+}
+```
+3. Настраиваю workspaces  
 ```bash
 $ terraform workspace new stage && terraform workspace new prod
 Created and switched to workspace "stage"!
@@ -76,7 +73,7 @@ for this configuration.
 $ terraform workspace select stage
 Switched to workspace "stage".
 ```
-4. Создайте VPC с подсетями в разных зонах доступности.
+4. Создаю VPC с подсетями в разных зонах доступности.
 ```tf
 # networks.tf
 # Create ya.cloud VPC
@@ -103,10 +100,9 @@ resource "yandex_vpc_subnet" "k8s-network-c" {
   v4_cidr_blocks = ["172.28.20.0/24"]
 }
 ```
-6. Убедитесь, что теперь вы можете выполнить команды `terraform destroy` и `terraform apply` без дополнительных ручных действий.
+6. Проверяю команды `terraform destroy` и `terraform apply` без дополнительных ручных действий.
 ```bash
-$ terraform apply                                                                                                                                                                                                       
-                                                                                                                                                                                                                                                                                   
+$ terraform apply                                                       
 Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:                                                                                                                                         
   + create                                                                                                                                                                                                                                                                         
 
@@ -175,35 +171,22 @@ Do you want to perform these actions in workspace "stage"?
   Only 'yes' will be accepted to approve.
 
   Enter a value: yes
-
-yandex_vpc_network.k8s-network: Creating...
-yandex_vpc_network.k8s-network: Creation complete after 2s [id=enp7ns968m8iutndnj5p]                            
-yandex_vpc_subnet.k8s-network-b: Creating...                                                                    
-yandex_vpc_subnet.k8s-network-c: Creating...                                                                    
-yandex_vpc_subnet.k8s-network-a: Creating...                                                                    
-yandex_vpc_subnet.k8s-network-b: Creation complete after 1s [id=e2lsfs5olfd9ugn1q3c5]
-yandex_vpc_subnet.k8s-network-a: Creation complete after 1s [id=e9bprnucsd5p4i19pkho]                            
-yandex_vpc_subnet.k8s-network-c: Creation complete after 1s [id=b0c001j5je0ja9ab5fi1]                            
-                                                                                                                
-Apply complete! Resources: 4 added, 0 changed, 0 destroyed.
 ```
 ```bash
-$ terraform destroy                                                                                                                                                                                                     
-yandex_vpc_network.k8s-network: Refreshing state... [id=enp7ns968m8iutndnj5p]                                                                                                                                                                                                      
-yandex_vpc_subnet.k8s-network-b: Refreshing state... [id=e2lsfs5olfd9ugn1q3c5]                                                                                                                                                                                                     
-yandex_vpc_subnet.k8s-network-c: Refreshing state... [id=b0c001j5je0ja9ab5fi1]                                                                                                                                                                                                     
-yandex_vpc_subnet.k8s-network-a: Refreshing state... [id=e9bprnucsd5p4i19pkho]                                                                                                                                                                                                     
-                                                                                                                                                                                                                                                                                   
+$ terraform destroy 
+yandex_vpc_network.k8s-network: Refreshing state... [id=enp7ns968m8iutndnj5p]
+yandex_vpc_subnet.k8s-network-b: Refreshing state... [id=e2lsfs5olfd9ugn1q3c5]
+yandex_vpc_subnet.k8s-network-c: Refreshing state... [id=b0c001j5je0ja9ab5fi1]
+yandex_vpc_subnet.k8s-network-a: Refreshing state... [id=e9bprnucsd5p4i19pkho]
 Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:                                                                                                                                         
-  - destroy                                                                                                                                                                                                                                                                        
-                                                                                                                                                                                                                                                                                   
-Terraform will perform the following actions:                                                                                                                                                                                                                                      
-                                                                                                                                                                                                                                                                                   
-  # yandex_vpc_network.k8s-network will be destroyed                                                                                                                                                                                                                               
-  - resource "yandex_vpc_network" "k8s-network" {                                                                                                                                                                                                                                  
-      - created_at = "2022-02-08T05:19:36Z" -> null                                                                                                                                                                                                                                
-      - folder_id  = "b1gbfdm5fn2htkj22u8h" -> null                                                                                                                                                                                                                                
-      - id         = "enp7ns968m8iutndnj5p" -> null                                                                                                                                                                                                                                
+  - destroy
+Terraform will perform the following actions:   
+                                                
+  # yandex_vpc_network.k8s-network will be destroyed            
+  - resource "yandex_vpc_network" "k8s-network" {                                                 
+      - created_at = "2022-02-08T05:19:36Z" -> null                
+      - folder_id  = "b1gbfdm5fn2htkj22u8h" -> null                
+      - id         = "enp7ns968m8iutndnj5p" ->  null                                     
       - labels     = {} -> null
       - name       = "ya-network" -> null
       - subnet_ids = [
@@ -264,7 +247,8 @@ Do you really want to destroy all resources in workspace "stage"?
   Terraform will destroy all your managed infrastructure, as shown above.                                                                                         
   There is no undo. Only 'yes' will be accepted to confirm.                                                                                          
   
-  Enter a value: yes                                                                                                                                                                                                                                                                
+  Enter a value: yes                                                
+
 yandex_vpc_subnet.k8s-network-a: Destroying... [id=e9bprnucsd5p4i19pkho]                                        
 yandex_vpc_subnet.k8s-network-b: Destroying... [id=e2lsfs5olfd9ugn1q3c5]                                        
 yandex_vpc_subnet.k8s-network-c: Destroying... [id=b0c001j5je0ja9ab5fi1]                                        
@@ -276,50 +260,63 @@ yandex_vpc_network.k8s-network: Destruction complete after 1s
                                                                         
 Destroy complete! Resources: 4 destroyed.
 ```
-7. В случае использования [Terraform Cloud](https://app.terraform.io/) в качестве [backend](https://www.terraform.io/docs/language/settings/backends/index.html) убедитесь, что применение изменений успешно проходит, используя web-интерфейс Terraform cloud.
-
-Ожидаемые результаты:
-
-1. Terraform сконфигурирован и создание инфраструктуры посредством Terraform возможно без дополнительных ручных действий.
-2. Полученная конфигурация инфраструктуры является предварительной, поэтому в ходе дальнейшего выполнения задания возможны изменения.
+7. Web-интерфейс Terraform cloud.
+[!image](./images/app_terraform_io.png)
 
 ---
 ### Создание Kubernetes кластера
-
+yc managed-kubernetes cluster get-credentials --id catdfo4cstfdivmsvduq --external
 На этом этапе необходимо создать [Kubernetes](https://kubernetes.io/ru/docs/concepts/overview/what-is-kubernetes/) кластер на базе предварительно созданной инфраструктуры.   Требуется обеспечить доступ к ресурсам из Интернета.
 
-Это можно сделать двумя способами:
-
-1. Рекомендуемый вариант: самостоятельная установка Kubernetes кластера.  
-   а. При помощи Terraform подготовить как минимум 3 виртуальных машины Compute Cloud для создания Kubernetes-кластера. Тип виртуальной машины следует выбрать самостоятельно с учётом требовании к производительности и стоимости. Если в дальнейшем поймете, что необходимо сменить тип инстанса, используйте Terraform для внесения изменений.  
-   б. Подготовить [ansible](https://www.ansible.com/) конфигурации, можно воспользоваться, например [Kubespray](https://kubernetes.io/docs/setup/production-environment/tools/kubespray/)  
-   в. Задеплоить Kubernetes на подготовленные ранее инстансы, в случае нехватки каких-либо ресурсов вы всегда можете создать их при помощи Terraform.
-2. Альтернативный вариант: воспользуйтесь сервисом [Yandex Managed Service for Kubernetes](https://cloud.yandex.ru/services/managed-kubernetes)  
-  а. С помощью terraform resource для [kubernetes](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/kubernetes_cluster) создать региональный мастер kubernetes с размещением нод в разных 3 подсетях      
-  б. С помощью terraform resource для [kubernetes node group](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/kubernetes_node_group)
-  
+Подготавливаю inventory.ini
+  ```bash
+  ./inventory_generator.sh > ../kubespray/inventory/cloud/inventory.ini
+  ```
+  Стартую kubespray
+  ```bash
+  ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ../kubespray/inventory/cloud/inventory.ini ../kubespray/cluster.yml -b
+  ```
+  ```bash
+  PLAY RECAP **********************************************************************************************************************************************************
+  localhost                  : ok=4    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+  node-1                     : ok=579  changed=38   unreachable=0    failed=0    skipped=1174 rescued=0    ignored=3   
+  node-2                     : ok=526  changed=27   unreachable=0    failed=0    skipped=1046 rescued=0    ignored=2   
+  node-3                     : ok=528  changed=28   unreachable=0    failed=0    skipped=1043 rescued=0    ignored=2 
+  ```
+  Меняю внуиренний ip на внешний.
+  Копирую конфиги
+  ```
+  cp inventory/cloud/artifacts/admin.conf ~/.kube/config
 Ожидаемый результат:
 
-1. Работоспособный Kubernetes кластер.
-2. В файле `~/.kube/config` находятся данные для доступа к кластеру.
-3. Команда `kubectl get pods --all-namespaces` отрабатывает без ошибок.
-
+Команда `kubectl get pods --all-namespaces` отрабатывает без ошибок.
+```bash
+ kubectl get pods --all-namespacesNAMESPACE     NAME                                      READY   STATUS    RESTARTS      AGEkube-system   calico-kube-controllers-5788f6558-vrdfr   1/1     Running   2 (74m ago)   74mkube-system   calico-node-bz4hv                         1/1     Running   0             75mkube-system   calico-node-dnnps                         1/1     Running   0             75m
+kube-system   calico-node-lhhbm                         1/1     Running   0             75m
+kube-system   coredns-8474476ff8-2m528                  1/1     Running   0             71m
+kube-system   coredns-8474476ff8-kk48k                  1/1     Running   0             71m
+kube-system   dns-autoscaler-5ffdc7f89d-zgp9h           1/1     Running   0             71m
+kube-system   kube-apiserver-node-1                     1/1     Running   0             125m
+kube-system   kube-apiserver-node-2                     1/1     Running   0             83m
+kube-system   kube-apiserver-node-3                     1/1     Running   0             83m
+kube-system   kube-controller-manager-node-1            1/1     Running   1             124m
+kube-system   kube-controller-manager-node-2            1/1     Running   1             83m
+kube-system   kube-controller-manager-node-3            1/1     Running   1             83m
+kube-system   kube-proxy-j7ggv                          1/1     Running   0             78m
+kube-system   kube-proxy-kmmtv                          1/1     Running   0             78m
+kube-system   kube-proxy-rckfr                          1/1     Running   0             78m
+kube-system   kube-scheduler-node-1                     1/1     Running   1             124m
+kube-system   kube-scheduler-node-2                     1/1     Running   1             83m
+kube-system   kube-scheduler-node-3                     1/1     Running   1             83m
+kube-system   nodelocaldns-9kd8x                        1/1     Running   0             71m
+kube-system   nodelocaldns-d52q8                        1/1     Running   0             71m
+kube-system   nodelocaldns-t9jp8                        1/1     Running   0             71m
+```
 ---
 ### Создание тестового приложения
-
-Для перехода к следующему этапу необходимо подготовить тестовое приложение, эмулирующее основное приложение разрабатываемое вашей компанией.
-
-Способ подготовки:
-
-1. Рекомендуемый вариант:  
-   а. Создайте отдельный git репозиторий с простым nginx конфигом, который будет отдавать статические данные.  
-   б. Подготовьте Dockerfile для создания образа приложения.  
-2. Альтернативный вариант:  
-   а. Используйте любой другой код, главное, чтобы был самостоятельно создан Dockerfile.
-
-Ожидаемый результат:
-
 1. Git репозиторий с тестовым приложением и Dockerfile.
+[nginx](https://github.com/ottvladimir/nginx/tree/main)
+
 2. Регистр с собранным docker image. В качестве регистра может быть DockerHub или [Yandex Container Registry](https://cloud.yandex.ru/services/container-registry), созданный также с помощью terraform.
 
 ---
@@ -333,7 +330,60 @@ Destroy complete! Resources: 4 destroyed.
 2. Задеплоить тестовое приложение, например, [nginx](https://www.nginx.com/) сервер отдающий статическую страницу.
 
 Рекомендуемый способ выполнения:
-1. Воспользовать пакетом [kube-prometheus](https://github.com/prometheus-operator/kube-prometheus), который уже включает в себя [Kubernetes оператор](https://operatorhub.io/) для [grafana](https://grafana.com/), [prometheus](https://prometheus.io/), [alertmanager](https://github.com/prometheus/alertmanager) и [node_exporter](https://github.com/prometheus/node_exporter). При желании можете собрать все эти приложения отдельно.
+
+# Задеплоить в кластер prometheus-stack
+1. 
+```bash
+$ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+$ helm install stable prometheus-community/kube-prometheus-stack
+```
+Настраиваю Prometheus на LoadBalancer.
+```bash
+$ kubectl edit svc stable-kube-prometheus-sta-prometheus
+```
+Меняю
+```yaml
+selector:
+    app.kubernetes.io/name: prometheus
+    prometheus: stable-kube-prometheus-sta-prometheus
+  sessionAffinity: None
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+```
+на
+
+```yaml
+selector:
+    app.kubernetes.io/name: prometheus
+    prometheus: stable-kube-prometheus-sta-prometheus
+  sessionAffinity: None
+  type: LoadBalancer
+```
+Тоже самое для grafana
+```yaml
+  selector:
+    app.kubernetes.io/instance: stable
+    app.kubernetes.io/name: grafana
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+```
+Меняю на 
+```yaml
+  selector:
+    app.kubernetes.io/instance: stable
+    app.kubernetes.io/name: grafana
+  sessionAffinity: None
+  type: LoadBalancer
+```
+app.kubernetes.io/instance: stable
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/version: 8.3.6
+    helm.sh/chart: grafana-6.22.0
 2. Для организации конфигурации использовать [qbec](https://qbec.io/), основанный на [jsonnet](https://jsonnet.org/). Обратите внимание на имеющиеся функции для интеграции helm конфигов и [helm charts](https://helm.sh/)
 3. Если на первом этапе вы не воспользовались [Terraform Cloud](https://app.terraform.io/), то задеплойте в кластер [atlantis](https://www.runatlantis.io/) для отслеживания изменений инфраструктуры.
 
@@ -356,11 +406,24 @@ Destroy complete! Resources: 4 destroyed.
 1. Автоматическая сборка docker образа при коммите в репозиторий с тестовым приложением.
 2. Автоматический деплой нового docker образа.
 
-Можно использовать [teamcity](https://www.jetbrains.com/ru-ru/teamcity/), [jenkins](https://www.jenkins.io/) либо [gitlab ci](https://about.gitlab.com/stages-devops-lifecycle/continuous-integration/)
+Настраиваю CI/CD GitLab
 
-Ожидаемый результат:
+[Репозиторий](https://gitlab.com/ottvladimir/netology-diplom-nginx)
 
-1. Интерфейс ci/cd сервиса доступен по http.
+1. Настройка gitlab:
+```bash
+$ kubectl get secrets
+NAME                  TYPE                                  DATA   AGE
+default-token-26c5n   kubernetes.io/service-account-token   3      6d5h
+$ kubectl get secret default-token-26c5n -o jsonpath="{['data']['ca\.crt']}" | base64 --decode
+```
+Устанавливаю переменные:
+[!image](images/gitlab_vars.png)
+KUBE_TOKEN - token пользователя terraform
+KUBE_URL - адрес кластера
+REGISTRYID - id Container Registry
+OAUTH - oauth token для авторизации в yc  
+Интерфейс ci/cd сервиса доступен по [ссылке](https://gitlab.com/ottvladimir/netology-diplom-nginx/-/settings/ci_cd)
 2. При любом коммите в репозиторие с тестовым приложением происходит сборка и отправка в регистр Docker образа.
 3. При создании тега (например, v1.0.0) происходит сборка и отправка с соответствующим label в регистр, а также деплой соответствующего Docker образа в кластер Kubernetes.
 
