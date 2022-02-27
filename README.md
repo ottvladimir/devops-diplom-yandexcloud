@@ -25,7 +25,7 @@
 
 ### Создание облачной инфраструктуры
 
-Подготавливаю облачную инфраструктуру в ЯО при помощи [Terraform](https://www.terraform.io/).
+Подготавливаю облачную инфраструктуру в ЯО при помощи terraform.
 
 Предварительная подготовка к установке и запуску Kubernetes кластера.
 
@@ -41,15 +41,16 @@ yc resource-manager folder add-access-binding $FOLDER_ID --role editor --subject
 yc iam service-account add-access-binding $SERVICE_ACCOUNT_ID --role editor 
 serviceAccount:$SERVICE_ACCOUNT_ID
 ```
-2. Подготавливаю backend на [Terraform Cloud](https://app.terraform.io/)  
+2. Подготавливаю backend на Terraform Cloud 
+# backend.tf
 ```tf
 # backend.tf
-terraform {                                                                                                      
-  backend "remote" {                                                                                            
-    organization = "my_diploma"                                                                                  
-    workspaces {                                                                                 
-      prefix = "netology-diploma-"                                                                              
-    }                                                                                                                     
+terraform {
+  backend "remote" {
+    organization = "my_diploma"
+    workspaces {
+      prefix = "netology-diploma-"
+    }
 ```
 ```bash
 $ cat ~/.terraformrc
@@ -74,6 +75,7 @@ $ terraform workspace select stage
 Switched to workspace "stage".
 ```
 4. Создаю VPC с подсетями в разных зонах доступности.
+# networks.tf
 ```tf
 # networks.tf
 # Create ya.cloud VPC
@@ -102,8 +104,8 @@ resource "yandex_vpc_subnet" "k8s-network-c" {
 ```
 6. Проверяю команды `terraform destroy` и `terraform apply` без дополнительных ручных действий.
 ```bash
-$ terraform apply                                                       
-Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:                                                                                                                                         
+$ terraform apply
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
   + create                                                                                                                                                                                                                                                                         
 
 Terraform will perform the following actions:
@@ -178,15 +180,15 @@ yandex_vpc_network.k8s-network: Refreshing state... [id=enp7ns968m8iutndnj5p]
 yandex_vpc_subnet.k8s-network-b: Refreshing state... [id=e2lsfs5olfd9ugn1q3c5]
 yandex_vpc_subnet.k8s-network-c: Refreshing state... [id=b0c001j5je0ja9ab5fi1]
 yandex_vpc_subnet.k8s-network-a: Refreshing state... [id=e9bprnucsd5p4i19pkho]
-Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:                                                                                                                                         
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
   - destroy
-Terraform will perform the following actions:   
+Terraform will perform the following actions:
                                                 
-  # yandex_vpc_network.k8s-network will be destroyed            
-  - resource "yandex_vpc_network" "k8s-network" {                                                 
-      - created_at = "2022-02-08T05:19:36Z" -> null                
-      - folder_id  = "b1gbfdm5fn2htkj22u8h" -> null                
-      - id         = "enp7ns968m8iutndnj5p" ->  null                                     
+  # yandex_vpc_network.k8s-network will be destroyed  
+  - resource "yandex_vpc_network" "k8s-network" {
+      - created_at = "2022-02-08T05:19:36Z" -> null 
+      - folder_id  = "b1gbfdm5fn2htkj22u8h" -> null 
+      - id         = "enp7ns968m8iutndnj5p" -> null
       - labels     = {} -> null
       - name       = "ya-network" -> null
       - subnet_ids = [
@@ -241,127 +243,235 @@ Terraform will perform the following actions:
       - zone           = "ru-central1-c" -> null
     }
 
-Plan: 0 to add, 0 to change, 4 to destroy.                                                                                                                         
+Plan: 0 to add, 0 to change, 4 to destroy.
 
-Do you really want to destroy all resources in workspace "stage"?                                                                                                 
-  Terraform will destroy all your managed infrastructure, as shown above.                                                                                         
-  There is no undo. Only 'yes' will be accepted to confirm.                                                                                          
-  
-  Enter a value: yes                                                
+Do you really want to destroy all resources in workspace "stage"?
+  Terraform will destroy all your managed infrastructure, as shown above.
+  There is no undo. Only 'yes' will be accepted to confirm.  
+  Enter a value: yes
 
-yandex_vpc_subnet.k8s-network-a: Destroying... [id=e9bprnucsd5p4i19pkho]                                        
-yandex_vpc_subnet.k8s-network-b: Destroying... [id=e2lsfs5olfd9ugn1q3c5]                                        
-yandex_vpc_subnet.k8s-network-c: Destroying... [id=b0c001j5je0ja9ab5fi1]                                        
-yandex_vpc_subnet.k8s-network-c: Destruction complete after 6s                                                  
-yandex_vpc_subnet.k8s-network-a: Destruction complete after 8s                                                  
-yandex_vpc_subnet.k8s-network-b: Destruction complete after 9s                                                  
-yandex_vpc_network.k8s-network: Destroying... [id=enp7ns968m8iutndnj5p]                                          
-yandex_vpc_network.k8s-network: Destruction complete after 1s                                                    
-                                                                        
+yandex_vpc_subnet.k8s-network-a: Destroying... [id=e9bprnucsd5p4i19pkho]
+yandex_vpc_subnet.k8s-network-b: Destroying... [id=e2lsfs5olfd9ugn1q3c5]
+yandex_vpc_subnet.k8s-network-c: Destroying... [id=b0c001j5je0ja9ab5fi1]
+yandex_vpc_subnet.k8s-network-c: Destruction complete after 6s
+yandex_vpc_subnet.k8s-network-a: Destruction complete after 8s
+yandex_vpc_subnet.k8s-network-b: Destruction complete after 9s
+yandex_vpc_network.k8s-network: Destroying... [id=enp7ns968m8iutndnj5p]
+yandex_vpc_network.k8s-network: Destruction complete after 1s
+           
 Destroy complete! Resources: 4 destroyed.
 ```
 7. Web-интерфейс Terraform cloud.
-[!image](./images/app_terraform_io.png)
+![image](./images/app_terraform_io.png)
 
 ---
 ### Создание Kubernetes кластера
-yc managed-kubernetes cluster get-credentials --id catdfo4cstfdivmsvduq --external
-На этом этапе необходимо создать [Kubernetes](https://kubernetes.io/ru/docs/concepts/overview/what-is-kubernetes/) кластер на базе предварительно созданной инфраструктуры.   Требуется обеспечить доступ к ресурсам из Интернета.
+Cоздаю Kubernetes кластер на базе предварительно созданной инфраструктуры используя Yandex Managed Service for Kubernetes
+# k8s-cluster.tf
+```tf 
+resource "yandex_kubernetes_cluster" "k8s-yandex" {
+  name        = "k8s-yandex"
+  description = "description"
 
-Подготавливаю inventory.ini
-  ```bash
-  ./inventory_generator.sh > ../kubespray/inventory/cloud/inventory.ini
-  ```
-  Стартую kubespray
-  ```bash
-  ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i ../kubespray/inventory/cloud/inventory.ini ../kubespray/cluster.yml -b
-  ```
-  ```bash
-  PLAY RECAP **********************************************************************************************************************************************************
-  localhost                  : ok=4    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
-  node-1                     : ok=579  changed=38   unreachable=0    failed=0    skipped=1174 rescued=0    ignored=3   
-  node-2                     : ok=526  changed=27   unreachable=0    failed=0    skipped=1046 rescued=0    ignored=2   
-  node-3                     : ok=528  changed=28   unreachable=0    failed=0    skipped=1043 rescued=0    ignored=2 
-  ```
-  Меняю внуиренний ip на внешний.
-  Копирую конфиги
-  ```
-  cp inventory/cloud/artifacts/admin.conf ~/.kube/config
-Ожидаемый результат:
+  network_id = "${yandex_vpc_network.k8s-network.id}"
 
-Команда `kubectl get pods --all-namespaces` отрабатывает без ошибок.
+  master {
+    regional {
+      region = "ru-central1"
+
+      location {
+        zone      = "${yandex_vpc_subnet.k8s-network-a.zone}"
+        subnet_id = "${yandex_vpc_subnet.k8s-network-a.id}"
+      }
+
+      location {
+        zone      = "${yandex_vpc_subnet.k8s-network-b.zone}"
+        subnet_id = "${yandex_vpc_subnet.k8s-network-b.id}"
+      }
+
+      location {
+        zone      = "${yandex_vpc_subnet.k8s-network-c.zone}"
+        subnet_id = "${yandex_vpc_subnet.k8s-network-c.id}"
+      }
+    }
+
+   version   = "1.21"
+    public_ip = true
+
+    maintenance_policy {
+      auto_upgrade = true
+
+      maintenance_window {
+        day        = "monday"
+        start_time = "15:00"
+        duration   = "3h"
+      }
+
+      maintenance_window {
+        day        = "friday"
+        start_time = "10:00"
+        duration   = "4h30m"
+      }
+    }
+  }
+
+  service_account_id      = "${yandex_iam_service_account.k8s.id}"
+  node_service_account_id = "${yandex_iam_service_account.pusher.id}"
+  labels = {
+    my_key       = "my_value"
+    my_other_key = "my_other_value"
+  }
+
+  release_channel = "STABLE"
+  network_policy_provider = "CALICO"
+}
+```
+Создаю воркеры
+# k8s-nodes.tf
+```tf
+resource "yandex_kubernetes_node_group" "mynodes" {
+  cluster_id  = "${yandex_kubernetes_cluster.k8s-yandex.id}"
+  name        = "mynodes"
+  description = "description"
+  version     = "1.21"
+
+  labels = {
+    "key" = "value"
+  }
+
+  instance_template {
+    platform_id = "standard-v2"
+
+    network_interface {
+      nat                = true
+      subnet_ids = [yandex_vpc_subnet.k8s-network-a.id]
+    }
+
+    resources {
+      memory = 8
+      cores  = 4
+    }
+
+    boot_disk {
+      type = "network-hdd"
+      size = 64
+    }
+
+    scheduling_policy {
+      preemptible = false
+    }
+
+  }
+
+  scale_policy {
+    auto_scale {
+      min = 3
+      max = 6
+      initial = 3
+    }
+  }
+
+  allocation_policy {
+    location {
+      zone = "ru-central1-a"
+    }
+  }
+
+  maintenance_policy {
+    auto_upgrade = true
+    auto_repair  = true
+
+    maintenance_window {
+      day        = "monday"
+      start_time = "15:00"
+      duration   = "3h"
+    }
+    maintenance_window {
+      day        = "friday"
+      start_time = "10:00"
+      duration   = "4h30m"
+    }
+  }
+}
+```
+Получаю адрес и id кластера
+# outputs.tf
+```tf
+output "cluster_external_v4_endpoint" {
+  value = yandex_kubernetes_cluster.k8s-yandex.master.0.external_v4_endpoint
+}
+
+output "cluster_id" {
+  value = yandex_kubernetes_cluster.k8s-yandex.id
+}
+```
+Создаю конфиг kubernetes
 ```bash
- kubectl get pods --all-namespacesNAMESPACE     NAME                                      READY   STATUS    RESTARTS      AGEkube-system   calico-kube-controllers-5788f6558-vrdfr   1/1     Running   2 (74m ago)   74mkube-system   calico-node-bz4hv                         1/1     Running   0             75mkube-system   calico-node-dnnps                         1/1     Running   0             75m
-kube-system   calico-node-lhhbm                         1/1     Running   0             75m
-kube-system   coredns-8474476ff8-2m528                  1/1     Running   0             71m
-kube-system   coredns-8474476ff8-kk48k                  1/1     Running   0             71m
-kube-system   dns-autoscaler-5ffdc7f89d-zgp9h           1/1     Running   0             71m
-kube-system   kube-apiserver-node-1                     1/1     Running   0             125m
-kube-system   kube-apiserver-node-2                     1/1     Running   0             83m
-kube-system   kube-apiserver-node-3                     1/1     Running   0             83m
-kube-system   kube-controller-manager-node-1            1/1     Running   1             124m
-kube-system   kube-controller-manager-node-2            1/1     Running   1             83m
-kube-system   kube-controller-manager-node-3            1/1     Running   1             83m
-kube-system   kube-proxy-j7ggv                          1/1     Running   0             78m
-kube-system   kube-proxy-kmmtv                          1/1     Running   0             78m
-kube-system   kube-proxy-rckfr                          1/1     Running   0             78m
-kube-system   kube-scheduler-node-1                     1/1     Running   1             124m
-kube-system   kube-scheduler-node-2                     1/1     Running   1             83m
-kube-system   kube-scheduler-node-3                     1/1     Running   1             83m
-kube-system   nodelocaldns-9kd8x                        1/1     Running   0             71m
-kube-system   nodelocaldns-d52q8                        1/1     Running   0             71m
-kube-system   nodelocaldns-t9jp8                        1/1     Running   0             71m
+$ yc managed-kubernetes cluster get-credentials --id $(terraform output -json cluster_id | sed 's/\"//g') --external
+
+Context 'yc-k8s-yandex' was added as default to kubeconfig '/home/vladimir/.kube/config'.
+Check connection to cluster using 'kubectl cluster-info --kubeconfig /home/vladimir/.kube/config'.
+
+Note, that authentication depends on 'yc' and its config profile 'terraform-profile'.
+To access clusters using the Kubernetes API, please use Kubernetes Service Account.
+```
+
+Команда `kubectl get pods --all-namespaces`.
+```bash
+ $ kubectl get pods --all-namespaces
+NAMESPACE     NAME                                                  READY   STATUS    RESTARTS   AGE
+kube-system   calico-node-4cqnq                                     1/1     Running   0          13m
+kube-system   calico-node-jnp5g                                     1/1     Running   0          13m
+kube-system   calico-node-wddwd                                     1/1     Running   0          13m
+kube-system   calico-typha-6d7bddfb44-sbtzd                         1/1     Running   0          13m
+kube-system   calico-typha-horizontal-autoscaler-8495b957fc-wj68f   1/1     Running   0          16m
+kube-system   calico-typha-vertical-autoscaler-6cc57f94f4-gmbxv     1/1     Running   1          16m
+kube-system   coredns-5f8dbbff8f-9chqk                              1/1     Running   0          13m
+kube-system   coredns-5f8dbbff8f-qkrbh                              1/1     Running   0          16m
+kube-system   ip-masq-agent-9t5bj                                   1/1     Running   0          13m
+kube-system   ip-masq-agent-h7rlq                                   1/1     Running   0          13m
+kube-system   ip-masq-agent-pmp6m                                   1/1     Running   0          13m
+kube-system   kube-dns-autoscaler-598db8ff9c-d2wqn                  1/1     Running   0          16m
+kube-system   kube-proxy-24rxb                                      1/1     Running   0          13m
+kube-system   kube-proxy-7hphw                                      1/1     Running   0          13m
+kube-system   kube-proxy-xkfzw                                      1/1     Running   0          13m
+kube-system   metrics-server-v0.3.1-6b998b66d6-68slz                2/2     Running   0          13m
+kube-system   npd-v0.8.0-429rn                                      1/1     Running   0          13m
+kube-system   npd-v0.8.0-8wt2b                                      1/1     Running   0          13m
+kube-system   npd-v0.8.0-xmtj5                                      1/1     Running   0          13m
+kube-system   yc-disk-csi-node-v2-hcsm8                             6/6     Running   0          13m
+kube-system   yc-disk-csi-node-v2-wlqt6                             6/6     Running   0          13m
+kube-system   yc-disk-csi-node-v2-xdwgm                             6/6     Running   0          13m
 ```
 ---
 ### Создание тестового приложения
 1. Git репозиторий с тестовым приложением и Dockerfile.
 [nginx](https://github.com/ottvladimir/nginx/tree/main)
 
-2. Регистр с собранным docker image. В качестве регистра может быть DockerHub или [Yandex Container Registry](https://cloud.yandex.ru/services/container-registry), созданный также с помощью terraform.
+2. Регистр с собранным docker image. 
+```tf
+resource "yandex_container_registry" "diploma" {
+  name      = "netology"
+  folder_id = var.yc_folder_id
 
+  labels = {
+    my-label = "diploma-apps"
+  }
+}
+```
 ---
 ### Подготовка cистемы мониторинга и деплой приложения
 
-Уже должны быть готовы конфигурации для автоматического создания облачной инфраструктуры и поднятия Kubernetes кластера.  
-Теперь необходимо подготовить конфигурационные файлы для настройки нашего Kubernetes кластера.
-
-Цель:
-1. Задеплоить в кластер [prometheus](https://prometheus.io/), [grafana](https://grafana.com/), [alertmanager](https://github.com/prometheus/alertmanager), [экспортер](https://github.com/prometheus/node_exporter) основных метрик Kubernetes.
-2. Задеплоить тестовое приложение, например, [nginx](https://www.nginx.com/) сервер отдающий статическую страницу.
-
-Рекомендуемый способ выполнения:
-
-# Задеплоить в кластер prometheus-stack
+# Деплою в кластер prometheus-stack
 1. 
 ```bash
 $ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-$ helm install stable prometheus-community/kube-prometheus-stack
+$ helm install --namespace netology stable prometheus-community/kube-prometheus-stack
 ```
-Настраиваю Prometheus на LoadBalancer.
+Настраиваю Grafana на LoadBalancer.
 ```bash
-$ kubectl edit svc stable-kube-prometheus-sta-prometheus
+$ kubectl edit svc stable-grafana
 ```
-Меняю
-```yaml
-selector:
-    app.kubernetes.io/name: prometheus
-    prometheus: stable-kube-prometheus-sta-prometheus
-  sessionAffinity: None
-  sessionAffinity: None
-  type: ClusterIP
-status:
-  loadBalancer: {}
-```
-на
-
-```yaml
-selector:
-    app.kubernetes.io/name: prometheus
-    prometheus: stable-kube-prometheus-sta-prometheus
-  sessionAffinity: None
-  type: LoadBalancer
-```
-Тоже самое для grafana
 ```yaml
   selector:
     app.kubernetes.io/instance: stable
@@ -379,32 +489,21 @@ status:
   sessionAffinity: None
   type: LoadBalancer
 ```
-app.kubernetes.io/instance: stable
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: grafana
-    app.kubernetes.io/version: 8.3.6
-    helm.sh/chart: grafana-6.22.0
-2. Для организации конфигурации использовать [qbec](https://qbec.io/), основанный на [jsonnet](https://jsonnet.org/). Обратите внимание на имеющиеся функции для интеграции helm конфигов и [helm charts](https://helm.sh/)
-3. Если на первом этапе вы не воспользовались [Terraform Cloud](https://app.terraform.io/), то задеплойте в кластер [atlantis](https://www.runatlantis.io/) для отслеживания изменений инфраструктуры.
-
-Альтернативный вариант:
-1. Для организации конфигурации можно использовать [helm charts](https://helm.sh/)
-
-Ожидаемый результат:
-1. Git репозиторий с конфигурационными файлами для настройки Kubernetes.
-2. Http доступ к web интерфейсу grafana.
-3. Дашборды в grafana отображающие состояние Kubernetes кластера.
-4. Http доступ к тестовому приложению.
-
----
+```bash
+$ kubectl get -n netology svc                                                                                                                                                        
+NAME                                      TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                AGE                                                                                                  
+alertmanager-operated                     ClusterIP      None            <none>          9093/TCP,9094/TCP,9094/UDP 11m                                                                                                  
+nginx-my                                  LoadBalancer   10.96.179.123   62.84.119.29    80:30686/TCP                 30m                                                                                                  
+prometheus-operated                       ClusterIP      None            <none>          9090/TCP                     11m                                                                                                  
+stable-grafana                            LoadBalancer   10.96.171.10    51.250.15.142   80:30316/TCP                 11m                                                                                                  
+stable-kube-prometheus-sta-alertmanager   ClusterIP      10.96.143.210   <none>          9093/TCP                     11m                                                                                                  
+stable-kube-prometheus-sta-operator       ClusterIP      10.96.254.0     <none>          443/TCP                      11m                                                                                                  
+stable-kube-prometheus-sta-prometheus     ClusterIP      10.96.217.251   <none>          9090/TCP                     11m                                                                                                  
+stable-kube-state-metrics                 ClusterIP      10.96.186.154   <none>          8080/TCP                     11m                                                                                                  
+stable-prometheus-node-exporter           ClusterIP      10.96.168.13    <none>          9100/TCP                     11m
+```
+![image](./image/grafana.png)
 ### Установка и настройка CI/CD
-
-Осталось настроить ci/cd систему для автоматической сборки docker image и деплоя приложения при изменении кода.
-
-Цель:
-
-1. Автоматическая сборка docker образа при коммите в репозиторий с тестовым приложением.
-2. Автоматический деплой нового docker образа.
 
 Настраиваю CI/CD GitLab
 
@@ -412,21 +511,18 @@ app.kubernetes.io/instance: stable
 
 1. Настройка gitlab:
 ```bash
-$ kubectl get secrets
-NAME                  TYPE                                  DATA   AGE
-default-token-26c5n   kubernetes.io/service-account-token   3      6d5h
-$ kubectl get secret default-token-26c5n -o jsonpath="{['data']['ca\.crt']}" | base64 --decode
+$ kubectl get secret $(kubectl get secrets -o json | jq -r .items[].metadata.name) -o jsonpath="{['data']['ca\.crt']}" | base64 --decode
 ```
 Устанавливаю переменные:
-[!image](images/gitlab_vars.png)
+![image](images/gitlab_vars.png)
 KUBE_TOKEN - token пользователя terraform
 KUBE_URL - адрес кластера
 REGISTRYID - id Container Registry
 OAUTH - oauth token для авторизации в yc  
 Интерфейс ci/cd сервиса доступен по [ссылке](https://gitlab.com/ottvladimir/netology-diplom-nginx/-/settings/ci_cd)
-2. При любом коммите в репозиторие с тестовым приложением происходит сборка и отправка в регистр Docker образа.
-3. При создании тега (например, v1.0.0) происходит сборка и отправка с соответствующим label в регистр, а также деплой соответствующего Docker образа в кластер Kubernetes.
-
+При любом коммите в репозиторие с тестовым приложением происходит сборка и отправка в регистр Docker образа.
+![image](./images/build.png)
+![image](./images/deploy)
 ---
 ## Что необходимо для сдачи задания?
 
