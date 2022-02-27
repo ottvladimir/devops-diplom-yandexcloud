@@ -42,7 +42,7 @@ yc iam service-account add-access-binding $SERVICE_ACCOUNT_ID --role editor
 serviceAccount:$SERVICE_ACCOUNT_ID
 ```
 2. Подготавливаю backend на Terraform Cloud 
-# backend.tf
+#### backend.tf
 ```tf
 # backend.tf
 terraform {
@@ -75,7 +75,7 @@ $ terraform workspace select stage
 Switched to workspace "stage".
 ```
 4. Создаю VPC с подсетями в разных зонах доступности.
-# networks.tf
+#### networks.tf
 ```tf
 # networks.tf
 # Create ya.cloud VPC
@@ -267,7 +267,7 @@ Destroy complete! Resources: 4 destroyed.
 ---
 ### Создание Kubernetes кластера
 Cоздаю Kubernetes кластер на базе предварительно созданной инфраструктуры используя Yandex Managed Service for Kubernetes
-# k8s-cluster.tf
+#### k8s-cluster.tf
 ```tf 
 resource "yandex_kubernetes_cluster" "k8s-yandex" {
   name        = "k8s-yandex"
@@ -327,7 +327,7 @@ resource "yandex_kubernetes_cluster" "k8s-yandex" {
 }
 ```
 Создаю воркеры
-# k8s-nodes.tf
+#### k8s-nodes.tf
 ```tf
 resource "yandex_kubernetes_node_group" "mynodes" {
   cluster_id  = "${yandex_kubernetes_cluster.k8s-yandex.id}"
@@ -395,7 +395,7 @@ resource "yandex_kubernetes_node_group" "mynodes" {
 }
 ```
 Получаю адрес и id кластера
-# outputs.tf
+#### outputs.tf
 ```tf
 output "cluster_external_v4_endpoint" {
   value = yandex_kubernetes_cluster.k8s-yandex.master.0.external_v4_endpoint
@@ -449,6 +449,7 @@ kube-system   yc-disk-csi-node-v2-xdwgm                             6/6     Runn
 [nginx](https://github.com/ottvladimir/nginx/tree/main)
 
 2. Регистр с собранным docker image. 
+#### registry.tf
 ```tf
 resource "yandex_container_registry" "diploma" {
   name      = "netology"
