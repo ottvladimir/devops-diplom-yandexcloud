@@ -515,16 +515,16 @@ stable-prometheus-node-exporter           ClusterIP      10.96.168.13    <none> 
 $ kubectl get secret $(kubectl get secrets -o json | jq -r .items[].metadata.name) -o jsonpath="{['data']['ca\.crt']}" | base64 --decode
 ```
 Устанавливаю переменные:
-![image](images/gitlab_vars.png)
-KUBE_TOKEN - token пользователя terraform
-KUBE_URL - адрес кластера
-REGISTRYID - id Container Registry
-OAUTH - oauth token для авторизации в yc  
-Интерфейс ci/cd сервиса доступен по [ссылке](https://gitlab.com/ottvladimir/netology-diplom-nginx/-/settings/ci_cd)
-При любом коммите в репозиторие с тестовым приложением происходит сборка и отправка в регистр Docker образа.
-![image](./images/build.png)
-![image](./images/deploy.png)
----
+![image](images/gitlab_vars.png)  
+KUBE_TOKEN - token пользователя terraform  
+KUBE_URL - адрес кластера  
+REGISTRYID - id Container Registry  
+OAUTH - oauth token для авторизации в yc    
+Интерфейс ci/cd сервиса доступен по [ссылке](https://gitlab.com/ottvladimir/netology-diplom-nginx/-/settings/ci_cd)  
+При любом коммите в репозиторие с тестовым приложением происходит сборка и отправка в регистр Docker образа.  
+![image](./images/build.png)  
+![image](./images/deploy.png)  
+---  
 ## Что необходимо для сдачи задания?
 
 1. Репозиторий с конфигурационными файлами Terraform и готовность продемонстрировать создание всех ресурсов с нуля.
